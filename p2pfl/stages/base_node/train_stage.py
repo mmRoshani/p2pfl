@@ -47,7 +47,12 @@ class TrainStage(Stage):
         **kwargs,
     ) -> Union[Type["Stage"], None]:
         """Execute the stage."""
-        if state is None or communication_protocol is None or aggregator is None or early_stopping_fn is None:
+        if (
+            state is None
+            or communication_protocol is None
+            or aggregator is None
+            or early_stopping_fn is None
+        ):
             raise Exception("Invalid parameters on TrainStage.")
 
         # Set nodes to agg
@@ -64,7 +69,9 @@ class TrainStage(Stage):
             TrainStage.__train(state)
 
         # Aggregate Model
-        if not early_stopping_fn():  # eliminar esto, directamente comprobar si estan los atributos correspondientes
+        if (
+            not early_stopping_fn()
+        ):  # eliminar esto, directamente comprobar si estan los atributos correspondientes
             if state.learner is None:
                 raise Exception("Learner not initialized.")
             models_added = aggregator.add_model(
@@ -80,7 +87,9 @@ class TrainStage(Stage):
                     round=state.round,
                 )
             )
-            TrainStage.__gossip_model_aggregation(state, communication_protocol, aggregator)
+            TrainStage.__gossip_model_aggregation(
+                state, communication_protocol, aggregator
+            )
 
         # Next stage
         return StageFactory.get_stage("GossipModelStage")
@@ -93,7 +102,9 @@ class TrainStage(Stage):
         state.learner.fit()
 
     @staticmethod
-    def __evaluate(state: NodeState, communication_protocol: CommunicationProtocol) -> None:
+    def __evaluate(
+        state: NodeState, communication_protocol: CommunicationProtocol
+    ) -> None:
         logger.info(state.addr, "Evaluating...")
         if state.learner is None:
             raise Exception("Learner not initialized.")
@@ -135,7 +146,8 @@ class TrainStage(Stage):
             return [
                 n
                 for n in communication_protocol.get_neighbors(only_direct=False)
-                if (n not in aggregator.get_aggregated_models()) and (n in state.train_set)
+                if (n not in aggregator.get_aggregated_models())
+                and (n in state.train_set)
             ]
 
         def status_fn() -> Any:
@@ -150,7 +162,9 @@ class TrainStage(Stage):
 
         def model_fn(node: str) -> Any:
             model, contributors, weight = aggregator.get_partial_aggregation(
-                TrainStage.__get_aggregated_models(node, state)  # reemplazar por Aggregator - borrarlo de node
+                TrainStage.__get_aggregated_models(
+                    node, state
+                )  # reemplazar por Aggregator - borrarlo de node
             )
             if model is None or contributors is None or weight is None:
                 return None

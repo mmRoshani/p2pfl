@@ -21,7 +21,7 @@
 import logging
 import pickle
 from collections import OrderedDict
-from typing import Dict, Optional, Tuple
+from typing import Dict, MutableSequence, Optional, Tuple
 
 import pytorch_lightning as pl
 import torch
@@ -51,6 +51,7 @@ class LightningLearner(NodeLearner):
         data: The data of the learner.
         self_addr: The address of the learner.
         epochs: The number of epochs of the model.
+        eval_results: The array of each round evaluation results
 
     """
 
@@ -67,6 +68,7 @@ class LightningLearner(NodeLearner):
         self.__trainer: Optional[Trainer] = None
         self.epochs = epochs
         self.__self_addr = self_addr
+        self.eval_results = []
         # Start logging
         self.logger = FederatedLogger(self_addr)
         # To avoid GPU/TPU printings
@@ -110,7 +112,9 @@ class LightningLearner(NodeLearner):
     # Model weights
     ####
 
-    def encode_parameters(self, params: Optional[Dict[str, torch.Tensor]] = None) -> bytes:
+    def encode_parameters(
+        self, params: Optional[Dict[str, torch.Tensor]] = None
+    ) -> bytes:
         """
         Encode the parameters of the model.
 
@@ -162,6 +166,26 @@ class LightningLearner(NodeLearner):
 
         """
         return self.model.state_dict()
+
+    def set_eval_results(self) -> None:
+        """
+        Set the evaluation results array  to initial empty array.
+
+        Returns:
+            The evaluation results array
+
+        """
+        return self.eval_results
+
+    def get_eval_results(self) -> MutableSequence[Dict[str, float]]:
+        """
+        Get the evaluation results array of the model in each round.
+
+        Returns:
+            The evaluation results array
+
+        """
+        return self.eval_results
 
     ####
     # Training
@@ -225,6 +249,9 @@ class LightningLearner(NodeLearner):
                 # Log metrics
                 for k, v in results.items():
                     logger.log_metric(self.__self_addr, k, v)
+
+                # add to eva_results
+                self.eval_results.append(results)
                 return results
             else:
                 return {}

@@ -1,31 +1,24 @@
-from p2pfl.node import Node
-from p2pfl.learning.pytorch.mnist_examples.mnistfederated_dm import MnistFederatedDM
-from p2pfl.learning.pytorch.mnist_examples.models.mlp import MLP
+import threading
 
-master = Node(
-    MLP(),
-    MnistFederatedDM(),
-)
-slave_1 = Node(
-    MLP(),
-    MnistFederatedDM(),
-)
+from network.node_1 import node_1
+from network.node_2 import node_2
+from network.node_3 import node_3
 
-slave_2 = Node(
-    MLP(),
-    MnistFederatedDM(),
-)
 
-# Start nodes
-master.start()
-slave_1.start()
-slave_2.start()
+def start():
 
-# Connect nodes
-slave_1.connect(master.addr)
-slave_2.connect(master.addr)
-slave_2.connect(slave_1.addr)
+    node_1_thread = threading.Thread(target=node_1)
+    node_2_thread = threading.Thread(target=node_2)
+    node_3_thread = threading.Thread(target=node_3)
 
-# Start learning
-slave_1.set_start_learning(rounds=2, epochs=1)
-slave_2.set_start_learning(rounds=2, epochs=1)
+    node_1_thread.start()
+    node_2_thread.start()
+    node_3_thread.start()
+
+    node_1_thread.join()
+    node_2_thread.join()
+    node_3_thread.join()
+
+
+if __name__ == "__main__":
+    start()

@@ -30,6 +30,7 @@ class NodeLearner:
         data: The data of the learner.
         self_addr: The address of the learner.
         epochs: The number of epochs of the model.
+        eval_results: The array of each round evaluation results
 
     """
 
@@ -107,6 +108,26 @@ class NodeLearner:
 
         Returns
             The parameters of the model. (non-binary)
+
+        """
+        raise NotImplementedError
+
+    def set_eval_results(self) -> None:
+        """
+        Set the evaluation results array  to initial empty array.
+
+        Returns:
+            The evaluation results array
+
+        """
+        raise NotImplementedError
+
+    def get_eval_results(self) -> Any:
+        """
+        Get the evaluation results array of the model in each round.
+
+        Returns:
+            The revaluation results array
 
         """
         raise NotImplementedError
